@@ -1,7 +1,7 @@
 #include "commands.h"
 #include <string.h>
 
-// Парсинг строки направления в перечисление Direction
+// Парсинг строки 
 Direction parse_direction(const char* dir_str) {
     if (dir_str == NULL) return DIR_UNKNOWN;
     
