@@ -34,34 +34,22 @@ typedef struct {
     int dino_y;
 } Field;
 
-// Инициализация поля
+// Прототипы функций
 void field_init(Field* field);
-
-// Установка размеров поля
 int field_set_size(Field* field, int width, int height);
-
-// Установка позиции динозавра
 int field_set_dino_position(Field* field, int x, int y);
-
-// Перемещение динозавра
 int field_move_dino(Field* field, int dx, int dy);
-
-// Покраска текущей клетки
 void field_paint_cell(Field* field, char color);
-
-// Создание объекта в соседней клетке
 int field_create_object(Field* field, int dx, int dy, CellType type);
-
-// Прыжок динозавра
+int field_cut_tree(Field* field, int dx, int dy);
+int field_push_stone(Field* field, int dx, int dy);
 int field_jump_dino(Field* field, int dx, int dy, int distance);
-
-// Получение клетки по координатам (с учетом торической геометрии)
 Cell* field_get_cell(Field* field, int x, int y);
-
-// Вывод поля в файл
+int field_check_cell_symbol(Field* field, int x, int y, char symbol);
 void field_print(Field* field, FILE* output);
-
-// Вывод поля в консоль
 void field_display(Field* field);
+const char* field_get_error_message(int error_code);
+void field_copy(Field* dest, const Field* src);
+int field_load_from_file(Field* field, const char* filename);
 
 #endif
