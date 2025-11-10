@@ -1,11 +1,11 @@
 #include "commands.h"
 #include <string.h>
 
-// Парсинг строки 
+// Парсинг строки направления
 Direction parse_direction(const char* dir_str) {
     if (dir_str == NULL) return DIR_UNKNOWN;
     
-    // Сравниваем строку с известными направлениями (без учета регистра)
+    // Сравнение строки с известными направлениями (без учета регистра)
     if (strcasecmp(dir_str, "UP") == 0) return DIR_UP;
     if (strcasecmp(dir_str, "DOWN") == 0) return DIR_DOWN;
     if (strcasecmp(dir_str, "LEFT") == 0) return DIR_LEFT;
@@ -14,23 +14,23 @@ Direction parse_direction(const char* dir_str) {
     return DIR_UNKNOWN;
 }
 
-// Получение смещения координат для указанного направления
+// Изменение координат 
 int get_direction_offset(Direction dir, int* dx, int* dy) {
     if (dx == NULL || dy == NULL) return -1;
     
-    // Устанавливаем смещение в зависимости от направления
+    // Перемещение динозавра
     switch (dir) {
         case DIR_UP:
-            *dx = 0; *dy = -1;  // Вверх: x не меняется, y уменьшается
+            *dx = 0; *dy = -1;  // Направление вверх: x не меняется, y уменьшается
             break;
         case DIR_DOWN:
-            *dx = 0; *dy = 1;   // Вниз: x не меняется, y увеличивается
+            *dx = 0; *dy = 1;   // Направление вниз: x не меняется, y увеличивается
             break;
         case DIR_LEFT:
-            *dx = -1; *dy = 0;  // Влево: x уменьшается, y не меняется
+            *dx = -1; *dy = 0;  // Направление влево: x уменьшается, y не меняется
             break;
         case DIR_RIGHT:
-            *dx = 1; *dy = 0;   // Вправо: x увеличивается, y не меняется
+            *dx = 1; *dy = 0;   // Направление вправо: x увеличивается, y не меняется
             break;
         default:
             return -1;  // Неизвестное направление

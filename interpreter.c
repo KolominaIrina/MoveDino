@@ -55,7 +55,7 @@ const char* interpreter_get_error_message(InterpreterContext* context) {
     return (context != NULL) ? context->error_message : "Context is NULL";
 }
 
-// Очистка экрана консоли (кроссплатформенная)
+// Очистка экрана консоли 
 void clear_screen() {
 #ifdef _WIN32
     system("cls");  // Windows
@@ -64,7 +64,7 @@ void clear_screen() {
 #endif
 }
 
-// Задержка выполнения (кроссплатформенная)
+// Задержка выполнения 
 void wait_for_display(double seconds) {
 #ifdef _WIN32
     Sleep((DWORD)(seconds * 1000));     // Windows - миллисекунды
@@ -77,16 +77,16 @@ void wait_for_display(double seconds) {
 void interpreter_save_state(InterpreterContext* context) {
     if (context == NULL || !context->field_initialized) return;
     
-    // Если достигли максимума, сдвигаем историю
+    // Сдвигаем все состояния, если достигли максимального
     if (context->history_size >= MAX_UNDO_LEVELS) {
-        // Сдвигаем все состояния на 1 влево (удаляем самое старое)
+        // Удаление самого первого состояния
         for (int i = 0; i < MAX_UNDO_LEVELS - 1; i++) {
             field_copy(&context->history[i], &context->history[i + 1]);
         }
         context->history_size = MAX_UNDO_LEVELS - 1;
     }
     
-    // Сохраняем текущее состояние в конец истории
+    // Сохранение текущего состояния
     field_copy(&context->history[context->history_size], &context->field);
     context->current_history_index = context->history_size;
     context->history_size++;
@@ -108,7 +108,7 @@ int interpreter_undo(InterpreterContext* context) {
         return -3;
     }
     
-    // Переходим к предыдущему состоянию
+    // Возврат к предыдущему состоянию
     context->current_history_index--;
     field_copy(&context->field, &context->history[context->current_history_index]);
     
@@ -155,7 +155,7 @@ int interpreter_execute_if_command(InterpreterContext* context, ParsedCommand* c
         printf("Condition met! Symbol '%c' found at (%d, %d). Executing: %s\n", 
                cmd->color, cmd->x, cmd->y, cmd->then_command);
         
-        // Парсим и выполняем команду из THEN
+        // Парсинг и выполнение команды из блока THEN
         ParsedCommand then_cmd;
         int parse_result = parse_line(cmd->then_command, &then_cmd);
         
@@ -169,10 +169,10 @@ int interpreter_execute_if_command(InterpreterContext* context, ParsedCommand* c
             return 0;
         }
         
-        // Сохраняем состояние перед выполнением команды THEN
+        // Сохранение состояния перед выполнением команды THEN
         interpreter_save_state(context);
         
-        // Выполняем команду THEN
+        // Выполнение команды THEN
         int result = interpreter_execute_command(context, &then_cmd, line_number);
         
         if (result < 0 && context->error_occurred) {
@@ -200,7 +200,7 @@ int interpreter_execute_file(InterpreterContext* context, const char* filename) 
         return -2;
     }
     
-    // Сохраняем текущее имя файла
+    // Сохранение текущего имени файла
     char old_filename[256];
     strcpy(old_filename, context->current_filename);
     strcpy(context->current_filename, filename);
@@ -212,7 +212,7 @@ int interpreter_execute_file(InterpreterContext* context, const char* filename) 
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error: Cannot open file '%s'\n", filename);
-        // Восстанавливаем предыдущее состояние
+        // Восстанавление предыдущее состояние
         strcpy(context->current_filename, old_filename);
         context->exec_depth--;
         return -3;
@@ -235,7 +235,7 @@ int interpreter_execute_file(InterpreterContext* context, const char* filename) 
         }
         
         if (cmd.type == CMD_COMMENT) {
-            continue;  // Пропускаем комментарии
+            continue;  // Пропуск комментариев
         }
         
         result = interpreter_execute_command(context, &cmd, line_number);
@@ -249,7 +249,7 @@ int interpreter_execute_file(InterpreterContext* context, const char* filename) 
     fclose(file);
     printf("=== Finished executing: %s ===\n", filename);
     
-    // Восстанавливаем предыдущее имя файла
+    // Восстановление предыдущего имени файла
     strcpy(context->current_filename, old_filename);
     context->exec_depth--;
     
@@ -275,7 +275,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
         printf("Executing line %d: ", line_number);
     }
     
-    // Сохраняем состояние ПЕРЕД выполнением команды (кроме специальных команд)
+    // Сохранение состояние перед выполнением команды 
     if (cmd->type != CMD_UNDO && cmd->type != CMD_LOAD && cmd->type != CMD_EXEC && 
         cmd->type != CMD_COMMENT && context->field_initialized) {
         interpreter_save_state(context);
@@ -284,13 +284,13 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
     int result = 0;
     int dx, dy;
     
-    // Обработка различных типов команд
+    // Различные типы комманд
     switch (cmd->type) {
-        case CMD_COMMENT:
+        case CMD_COMMENT: // Пропуск комментариев без выполнения
             printf("Comment - skipped\n");
             break;
             
-        case CMD_SIZE:
+        case CMD_SIZE: // Установка размера игрового поля
             printf("SIZE %d %d\n", cmd->x, cmd->y);
             if (context->field_initialized) {
                 printf("Error: SIZE command can only be used once\n");
@@ -308,7 +308,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             context->field_initialized = 1;
             break;
             
-        case CMD_START:
+        case CMD_START: // Установка начальной позиции динозавра
             printf("START %d %d\n", cmd->x, cmd->y);
             if (!context->field_initialized) {
                 printf("Error: Field not initialized. Use SIZE first\n");
@@ -326,7 +326,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             context->dino_placed = 1;
             break;
             
-        case CMD_MOVE:
+        case CMD_MOVE: // Перемещение динозавра в указанном направлении
             printf("MOVE %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -361,7 +361,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_PAINT:
+        case CMD_PAINT: // Закрашивание текущей клетки указанным цветом
             printf("PAINT %c\n", cmd->color);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -380,7 +380,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             field_paint_cell(&context->field, cmd->color);
             break;
             
-        case CMD_DIG:
+        case CMD_DIG: // Создание ямы в указанном направлении
             printf("DIG %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -408,7 +408,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_MOUND:
+        case CMD_MOUND: // Создание горы в указанном направлении
             printf("MOUND %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -432,7 +432,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_JUMP:
+        case CMD_JUMP: // Прыжок динозавра на указанное расстояние в указанном направлении
             printf("JUMP %s %d\n", cmd->direction, cmd->n);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -478,7 +478,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_GROW:
+        case CMD_GROW: // Выращивание дерева в указанном направлении
             printf("GROW %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -502,7 +502,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_CUT:
+        case CMD_CUT: // Срубание дерева в указанном направлении
             printf("CUT %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -528,7 +528,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_MAKE:
+        case CMD_MAKE: // Создание камня в указанном направлении
             printf("MAKE %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -552,7 +552,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_PUSH:
+        case CMD_PUSH: // Толкание камня в указанном направлении
             printf("PUSH %s\n", cmd->direction);
             if (!context->dino_placed) {
                 printf("Error: Dino not placed. Use START command first\n");
@@ -582,7 +582,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_UNDO:
+        case CMD_UNDO: // Откат последнего действия
             printf("UNDO\n");
             result = interpreter_undo(context);
             if (result != 0) {
@@ -590,7 +590,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_EXEC:
+        case CMD_EXEC: // Выполнение команд из внешнего файла
             printf("EXEC %s\n", cmd->filename);
             result = interpreter_execute_file(context, cmd->filename);
             if (result != 0) {
@@ -598,7 +598,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_LOAD:
+        case CMD_LOAD: // Загрузка состояния поля из файла
             printf("LOAD %s\n", cmd->filename);
             if (context->field_initialized) {
                 printf("Error: LOAD can only be used as first command\n");
@@ -616,7 +616,7 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
             }
             break;
             
-        case CMD_IF:
+        case CMD_IF: // Условное выполнение команды
             printf("IF CELL %d %d IS %c THEN %s\n", cmd->x, cmd->y, cmd->color, cmd->then_command);
             result = interpreter_execute_if_command(context, cmd, line_number);
             break;
@@ -630,10 +630,10 @@ int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd,
     if (context->display_enabled && !context->error_occurred) {
         clear_screen();
         field_display(&context->field);
-        interpreter_show_warnings(context);  // Показываем предупреждения ПОСЛЕ поля
+        interpreter_show_warnings(context);  // Предупреждения после поля
         wait_for_display(context->display_interval);
     } else if (context->has_warning) {
-        // Если визуализация отключена, всё равно показываем предупреждения
+        // Если визуализация отключена, всё равно показываются предупреждения
         interpreter_show_warnings(context);
     }
     

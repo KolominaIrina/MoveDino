@@ -34,7 +34,7 @@ typedef struct {
     int dino_y;
 } Field;
 
-// Прототипы функций
+// Функции
 void field_init(Field* field);
 int field_set_size(Field* field, int width, int height);
 int field_set_dino_position(Field* field, int x, int y);

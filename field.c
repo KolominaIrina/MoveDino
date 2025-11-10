@@ -2,7 +2,7 @@
 #include "utils.h"
 #include <stdio.h>
 
-// Инициализация поля значениями по умолчанию
+// Инициализация поля начальными значениями
 void field_init(Field* field) {
     field->width = 0;
     field->height = 0;
@@ -37,7 +37,7 @@ const char* field_get_error_message(int error_code) {
 
 // Установка размеров игрового поля
 int field_set_size(Field* field, int width, int height) {
-    // Проверка допустимых размеров
+    // Проверка валидности размеров
     if (width < MIN_SIZE || width > MAX_WIDTH || 
         height < MIN_SIZE || height > MAX_HEIGHT) {
         printf("Error: Invalid field size %dx%d. Valid range: %dx%d - %dx%d\n", 
@@ -66,7 +66,7 @@ int field_set_dino_position(Field* field, int x, int y) {
         return -2;
     }
     
-    // Если динозавр уже был где-то, очищаем старую позицию
+    // Удаление старой позиции динозавра
     if (field->dino_x != -1 && field->dino_y != -1) {
         Cell* old_cell = field_get_cell(field, field->dino_x, field->dino_y);
         if (old_cell->type == CELL_DINO) {
@@ -74,7 +74,7 @@ int field_set_dino_position(Field* field, int x, int y) {
         }
     }
     
-    // Устанавливаем новую позицию динозавра
+    // Установка новой позиции динозавра
     field->dino_x = x;
     field->dino_y = y;
     
@@ -92,7 +92,7 @@ int field_move_dino(Field* field, int dx, int dy) {
         return -1;
     }
     
-    // Вычисление новой позиции с учетом торической геометрии
+    // Вычисление новой позиции (есть возможность выйти за границы поля)
     int new_x = (field->dino_x + dx + field->width) % field->width;
     int new_y = (field->dino_y + dy + field->height) % field->height;
     
@@ -106,10 +106,10 @@ int field_move_dino(Field* field, int dx, int dy) {
     if (target_cell->type == CELL_MOUNTAIN || 
         target_cell->type == CELL_TREE || 
         target_cell->type == CELL_STONE) {
-        return -3;  // Возвращаем код ошибки, вывод будет в interpreter.c
+        return -3;  // Возврат кода ошибки (interpreter.c)
     }
     
-    // Перемещаем динозавра
+    // Перемещение динозавра
     Cell* current_cell = field_get_cell(field, field->dino_x, field->dino_y);
     current_cell->type = CELL_EMPTY;
     
@@ -121,7 +121,7 @@ int field_move_dino(Field* field, int dx, int dy) {
     return 0;
 }
 
-// Покраска текущей клетки, где находится динозавр
+// Покраска текущей клетки (в ней находится динозавр)
 void field_paint_cell(Field* field, char color) {
     if (field->dino_x == -1 || field->dino_y == -1) {
         printf("Error: Dino not placed. Use START command\n");
@@ -155,10 +155,10 @@ int field_create_object(Field* field, int dx, int dy, CellType type) {
         return -6;
     }
     
-    // Особый случай: гора на яме
+    // Возведение горы на яме
     if (type == CELL_MOUNTAIN && target_cell->type == CELL_HOLE) {
     target_cell->type = CELL_EMPTY;
-    // target_cell->color НЕ меняем - сохраняем цвет клетки!
+    
     printf("Hole at cell (%d, %d) filled with mountain\n", target_x, target_y);
     return 0;
 }
@@ -196,9 +196,7 @@ int field_cut_tree(Field* field, int dx, int dy) {
         return -7;  // Нет дерева для срубания
     }
     
-    // Срубаем дерево - клетка становится пустой, но сохраняет цвет
     target_cell->type = CELL_EMPTY;
-    // Цвет сохраняется автоматически
     
     printf("Tree cut at cell (%d, %d)\n", target_x, target_y);
     return 0;
@@ -222,7 +220,7 @@ int field_push_stone(Field* field, int dx, int dy) {
         return -8;  // Нет камня для пинания
     }
     
-    // Вычисляем направление пинания (противоположно положению динозавра)
+    // Вычисление направления пинания (противоположно положению динозавра)
     int push_dx = dx;
     int push_dy = dy;
     
@@ -232,9 +230,9 @@ int field_push_stone(Field* field, int dx, int dy) {
     
     Cell* target_cell = field_get_cell(field, new_x, new_y);
     
-    // Проверяем, куда катим камень
+    // Проверка направления движения камня
     if (target_cell->type == CELL_TREE) {
-        return -10;  // Камень ударился о дерево
+        return -10;  // Камень отскочил от дерева
     }
     if (target_cell->type == CELL_MOUNTAIN || target_cell->type == CELL_STONE) {
         return -9;  // Препятствие
@@ -242,7 +240,7 @@ int field_push_stone(Field* field, int dx, int dy) {
     
     stone_cell->type = CELL_EMPTY;
     
-    // Особый случай: камень в яму
+    // Камень попадает в яму
     if (target_cell->type == CELL_HOLE) {
     target_cell->type = CELL_EMPTY;
     printf("Stone filled hole at cell (%d, %d)\n", new_x, new_y);
@@ -270,24 +268,24 @@ int field_jump_dino(Field* field, int dx, int dy, int distance) {
     int current_y = field->dino_y;
     int blocked_at_x = -1, blocked_at_y = -1;
     
-    // Проверяем путь прыжка на наличие препятствий
+    // Проверка путь прыжка на наличие препятствий
     for (int i = 1; i <= distance; i++) {
         int check_x = (current_x + dx * i + field->width) % field->width;
         int check_y = (current_y + dy * i + field->height) % field->height;
         
         Cell* check_cell = field_get_cell(field, check_x, check_y);
         
-        // Если встречаем гору, дерево или камень - останавливаемся перед ней
+        // Остановка перед горой, деревом или камнем
         if (check_cell->type == CELL_MOUNTAIN || 
             check_cell->type == CELL_TREE || 
             check_cell->type == CELL_STONE) {
             blocked_at_x = check_x;
             blocked_at_y = check_y;
-            distance = i - 1;  // Прыгаем до препятствия
+            distance = i - 1;  // Прыжок ровно до препятствия
             break;
         }
         
-        // Если приземляемся на яму - ошибка
+        // Приземление в яму
         if (i == distance && check_cell->type == CELL_HOLE) {
             printf("Fatal Error: Dino landed in a hole at cell (%d, %d)!\n", 
                    check_x, check_y);
@@ -296,10 +294,10 @@ int field_jump_dino(Field* field, int dx, int dy, int distance) {
     }
     
     if (distance == 0) {
-        return -5;  // Прыжок заблокирован прямо перед динозавром
+        return -5;  // Прямо перед динозавром препятствие
     }
     
-    // Выполняем прыжок
+    // Прыжок (исполнение)
     int new_x = (current_x + dx * distance + field->width) % field->width;
     int new_y = (current_y + dy * distance + field->height) % field->height;
     
@@ -313,15 +311,15 @@ int field_jump_dino(Field* field, int dx, int dy, int distance) {
     
     printf("Dino jumped %d cells to position (%d, %d)\n", distance, new_x, new_y);
     
-    // Возвращаем информацию о блокировке для предупреждения
+    // Блокировка прыжка
     if (blocked_at_x != -1) {
-        return -100 - blocked_at_x * 1000 - blocked_at_y;  // Код с координатами препятствия
+        return -100 - blocked_at_x * 1000 - blocked_at_y;  // Координаты препятствия
     }
     
     return 0;
 }
 
-// Проверка символа в указанной клетке
+// Проверка наличия символа в указанной клетке
 int field_check_cell_symbol(Field* field, int x, int y, char symbol) {
     // Проверка границ
     if (x < 0 || x >= field->width || y < 0 || y >= field->height) {
@@ -330,12 +328,12 @@ int field_check_cell_symbol(Field* field, int x, int y, char symbol) {
     
     Cell* cell = field_get_cell(field, x, y);
     
-    // Проверяем основной тип клетки
+    // Проверка типа клетки
     if ((char)cell->type == symbol) {
         return 1;
     }
     
-    // Проверяем цвет
+    // Проверка цвета клетки
     if (cell->color == symbol) {
         return 1;
     }
@@ -345,7 +343,7 @@ int field_check_cell_symbol(Field* field, int x, int y, char symbol) {
 
 // Получение клетки по координатам (с учетом торической геометрии)
 Cell* field_get_cell(Field* field, int x, int y) {
-    // Торическая геометрия - координаты заворачиваются
+    // Торическая геометрия - поле "бесконечное"
     if (field->width == 0 || field->height == 0) {
         return NULL;
     }
@@ -390,13 +388,13 @@ void field_display(Field* field) {
 void field_copy(Field* dest, const Field* src) {
     if (dest == NULL || src == NULL) return;
     
-    // Копируем все поля структуры
+    // Копирование размеров и координат динозавра
     dest->width = src->width;
     dest->height = src->height;
     dest->dino_x = src->dino_x;
     dest->dino_y = src->dino_y;
     
-    // Копируем сетку клеток
+    // Копирование всех клеток
     for (int i = 0; i < MAX_WIDTH; i++) {
         for (int j = 0; j < MAX_HEIGHT; j++) {
             dest->grid[i][j] = src->grid[i][j];
@@ -416,7 +414,7 @@ int field_load_from_file(Field* field, const char* filename) {
     int height = 0;
     int width = 0;
     
-    // Читаем файл для определения размеров
+    // Чтение файла для определения размеров
     while (fgets(line, sizeof(line), file)) {
         int line_length = strlen(line);
         if (line[line_length - 1] == '\n') {
@@ -436,15 +434,15 @@ int field_load_from_file(Field* field, const char* filename) {
         return -1;
     }
     
-    // Возвращаемся к началу файла
+    // К началу файла
     fseek(file, 0, SEEK_SET);
     
-    // Инициализируем поле
+    // Инициализация поля
     field_init(field);
     field->width = width;
     field->height = height;
     
-    // Загружаем данные из файла
+    // Загрузка данных из файла
     int y = 0;
     while (fgets(line, sizeof(line), file) && y < height) {
         int line_length = strlen(line);

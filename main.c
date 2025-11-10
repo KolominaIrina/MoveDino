@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
         
-        // Пропускаем комментарии
+        // Пропуск комментариев
         if (cmd.type == CMD_COMMENT) {
             continue;
         }

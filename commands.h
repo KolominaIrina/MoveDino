@@ -31,7 +31,7 @@ typedef enum {
     DIR_UNKNOWN     // Неизвестное направление
 } Direction;
 
-// Прототипы функций для работы с командами
+// Функции для работы с командами
 Direction parse_direction(const char* dir_str);
 int get_direction_offset(Direction dir, int* dx, int* dy);
 

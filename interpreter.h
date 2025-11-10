@@ -17,22 +17,22 @@ typedef struct {
     int save_enabled;               // Включено ли сохранение
     double display_interval;        // Интервал между отображениями
     
-    // ДЛЯ UNDO - система отката действий
+    // UNDO - система отката действий
     Field history[MAX_UNDO_LEVELS]; // История состояний поля
     int history_size;               // Текущий размер истории
     int current_history_index;      // Текущий индекс в истории
     
-    // ДЛЯ ПРЕДУПРЕЖДЕНИЙ
+    // Предупреждения
     char warning_message[256];      // Текст предупреждения
     int has_warning;                // Флаг наличия предупреждения
     
-    // ДЛЯ ВЛОЖЕННЫХ ФАЙЛОВ
+    // Вложенные файлы
     char current_filename[256];     // Текущий исполняемый файл
     int exec_depth;                 // Глубина вложенности EXEC
     
 } InterpreterContext;
 
-// Прототипы функций интерпретатора
+// Функций интерпретатора
 void interpreter_init(InterpreterContext* context);
 int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd, int line_number);
 int interpreter_execute_file(InterpreterContext* context, const char* filename);

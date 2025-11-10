@@ -5,7 +5,7 @@
 int file_exists(const char* filename) {
     if (filename == NULL) return 0;
     
-    // Пытаемся открыть файл для чтения
+    // Открытие файла для чтения
     FILE* file = fopen(filename, "r");
     if (file != NULL) {
         fclose(file);
@@ -20,9 +20,9 @@ char* read_line(FILE* file, char* buffer, int size) {
         return NULL;
     }
     
-    // Читаем строку из файла
+    // Чтение строки из файла
     if (fgets(buffer, size, file) != NULL) {
-        // Убираем символ новой строки в конце
+        // Удаление символа новой строки в конце
         size_t len = strlen(buffer);
         if (len > 0 && buffer[len - 1] == '\n') {
             buffer[len - 1] = '\0';

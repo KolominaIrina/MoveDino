@@ -5,7 +5,7 @@
 
 // Проверка, является ли строка комментарием
 int is_comment_line(const char* line) {
-    // Пропускаем начальные пробелы
+    // Пропуск начальных пробелов
     while (*line && isspace(*line)) line++;
     // Комментарий начинается с //
     return (line[0] == '/' && line[1] == '/');
@@ -17,16 +17,16 @@ void trim_whitespace(char* str) {
     
     char* end;
     
-    // Убираем пробелы в конце строки
+    // Удаление пробелов в конце строки
     end = str + strlen(str) - 1;
     while (end > str && isspace(*end)) end--;
     *(end + 1) = '\0';
     
-    // Убираем пробелы в начале строки
+    // Удаление пробелов в начале строки
     char* start = str;
     while (*start && isspace(*start)) start++;
     
-    // Сдвигаем строку, если были пробелы в начале
+    // Сдвиг строки, если были пробелы в начале
     if (start != str) {
         memmove(str, start, strlen(start) + 1);
     }
@@ -39,22 +39,22 @@ int parse_line(const char* line, ParsedCommand* cmd) {
         return -1;
     }
     
-    // Создаем копию строки для безопасной работы
+    // Создание копии строки для безопасной работы
     char line_copy[MAX_LINE_LENGTH];
     strncpy(line_copy, line, MAX_LINE_LENGTH - 1);
     line_copy[MAX_LINE_LENGTH - 1] = '\0';
     
-    // Удаляем лишние пробелы
+    // Удаление лишних пробелов
     trim_whitespace(line_copy);
     
-    // Пропускаем пустые строки и комментарии
+    // Пропуск пустых строк и комментариев
     if (line_copy[0] == '\0' || is_comment_line(line_copy)) {
         cmd->type = CMD_COMMENT;
         return 0;
     }
     
     // Разбиваем строку на токены (слова)
-    char* tokens[20];  // Увеличиваем для IF команды
+    char* tokens[20];  // Увеличиваем для IF команды (там может быть больше слов)
     int token_count = 0;
     char* token = strtok(line_copy, " ");
     
@@ -73,6 +73,7 @@ int parse_line(const char* line, ParsedCommand* cmd) {
     
     // Анализируем команду по первому токену
     if (strcasecmp(tokens[0], "SIZE") == 0) {
+        // Проверка количества аргументов для SIZE (и так далее)
         if (token_count != 3) {
             printf("Syntax Error: SIZE requires 2 arguments (width height)\n");
             return -2;
@@ -187,12 +188,12 @@ int parse_line(const char* line, ParsedCommand* cmd) {
         cmd->type = CMD_UNDO;
     }
     else if (strcasecmp(tokens[0], "IF") == 0) {
-        // IF CELL x y IS symbol THEN command
+        
         if (token_count < 8) {
             printf("Syntax Error: IF requires at least 7 arguments\n");
             return -2;
         }
-        // Проверяем правильность формата IF команды
+        // Проверка правильности формата IF
         if (strcasecmp(tokens[1], "CELL") != 0 || strcasecmp(tokens[4], "IS") != 0 || 
             strcasecmp(tokens[6], "THEN") != 0) {
             printf("Syntax Error: IF must follow format: IF CELL x y IS symbol THEN command\n");
@@ -203,7 +204,7 @@ int parse_line(const char* line, ParsedCommand* cmd) {
         cmd->y = atoi(tokens[3]);
         cmd->color = tokens[5][0];
         
-        // Собираем команду после THEN в одну строку
+        // Сбор команды после THEN в одну строку
         strcpy(cmd->then_command, "");
         for (int i = 7; i < token_count; i++) {
             if (i > 7) strcat(cmd->then_command, " ");
@@ -211,7 +212,7 @@ int parse_line(const char* line, ParsedCommand* cmd) {
         }
     }
     
-    // Проверяем, удалось ли распознать команду
+    // Проверка распознавания команды
     if (cmd->type == CMD_UNKNOWN) {
         printf("Error: Unknown command '%s'\n", tokens[0]);
         return -1;
