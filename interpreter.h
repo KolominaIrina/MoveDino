@@ -40,7 +40,7 @@ int interpreter_execute_if_command(InterpreterContext* context, ParsedCommand* c
 void interpreter_save_state(InterpreterContext* context);
 int interpreter_undo(InterpreterContext* context);
 void interpreter_set_display_options(InterpreterContext* context, int enabled, double interval); // настройки отображения
-void interpreter_set_save_option(InterpreterContext* context, int enabled); // вкл/выкл сохранения результата в файл
+void interpreter_set_save_option(InterpreterContext* context, int enabled); // вкл/выкл сохранение результата в файл
 const char* interpreter_get_error_message(InterpreterContext* context);
 
 // Функции для работы с предупреждениями
