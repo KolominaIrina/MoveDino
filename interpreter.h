@@ -4,7 +4,7 @@
 #include "field.h"
 #include "parser.h"
 
-#define MAX_UNDO_LEVELS 50  // Максимальное количество уровней отката
+#define MAX_UNDO_LEVELS 20  // Максимальное количество уровней отката
 
 // Контекст интерпретатора - хранит состояние выполнения программы
 typedef struct {
@@ -28,19 +28,19 @@ typedef struct {
     
     // Вложенные файлы
     char current_filename[256];     // Текущий исполняемый файл
-    int exec_depth;                 // Глубина вложенности EXEC
+    int exec_depth;                 // Глубина вложенности EXEC (защита от бесконечной рекурсии)
     
 } InterpreterContext;
 
-// Функций интерпретатора
-void interpreter_init(InterpreterContext* context);
-int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd, int line_number);
-int interpreter_execute_file(InterpreterContext* context, const char* filename);
-int interpreter_execute_if_command(InterpreterContext* context, ParsedCommand* cmd, int line_number);
+// Функции интерпретатора
+void interpreter_init(InterpreterContext* context); // инициализация контекста интерпретатора (обнуление, выделение памяти)
+int interpreter_execute_command(InterpreterContext* context, ParsedCommand* cmd, int line_number); // выполнение одной команды (cmd - распознанная команда, line_number - для кодов ошибок)
+int interpreter_execute_file(InterpreterContext* context, const char* filename); // выполнение всех команд из файла (команда EXEC)
+int interpreter_execute_if_command(InterpreterContext* context, ParsedCommand* cmd, int line_number); // обработка условной команды IF
 void interpreter_save_state(InterpreterContext* context);
 int interpreter_undo(InterpreterContext* context);
-void interpreter_set_display_options(InterpreterContext* context, int enabled, double interval);
-void interpreter_set_save_option(InterpreterContext* context, int enabled);
+void interpreter_set_display_options(InterpreterContext* context, int enabled, double interval); // настройки отображения
+void interpreter_set_save_option(InterpreterContext* context, int enabled); // вкл/выкл сохранения результата в файл
 const char* interpreter_get_error_message(InterpreterContext* context);
 
 // Функции для работы с предупреждениями
